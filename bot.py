@@ -5,9 +5,17 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import yt_dlp as youtube_dl
 import asyncio
+from dotenv import load_dotenv
+import os
 
-spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id='YOUR_SPOTIFY_CLIENT_ID',
-                                                                             client_secret='YOUR_SPOTIFY_CLIENT_SECRET'))
+load_dotenv()
+
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+
+spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID,
+                                                                             client_secret=SPOTIFY_CLIENT_SECRET))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -57,7 +65,6 @@ async def play_next_song(ctx):
         voice_channel = ctx.author.voice.channel
         voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
-    
         source = discord.FFmpegPCMAudio(song['source'])
         voice.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
 
@@ -75,11 +82,9 @@ async def play(ctx, *, query=None):
 
     song = None
 
-
     song = search_spotify(query)
     
     if not song:
-    
         song = search_youtube(query)
 
     if song:
@@ -107,4 +112,4 @@ async def play(ctx, *, query=None):
 async def on_ready():
     print(f'Bot conectado como {bot.user}!')
 
-bot.run('YOUR_DISCORD_TOKEN')
+bot.run(DISCORD_TOKEN)
