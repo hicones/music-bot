@@ -1,0 +1,43 @@
+# Ignore Python bytecode e cache
+__pycache__/
+*.py[cod]
+
+# Ignore ambiente virtual
+env/
+venv/
+.bot_env/
+*.egg-info/
+*.eggs/
+
+# Ignore arquivos de logs
+*.log
+
+# Ignore configurações e arquivos de ambiente
+.env
+
+# Ignore arquivos do Docker
+*.tar
+*.img
+*.iso
+
+# Ignore arquivos de cache do pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignore arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignore arquivos e pastas criados pelo editor/IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Ignore logs e saídas geradas pela execução do bot
+logs/
+output/
+
+# Ignore arquivos temporários do sistema
+tmp/
+temp/
