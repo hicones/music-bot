@@ -30,10 +30,21 @@ spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(cl
 music_queue = {}
 
 def search_youtube(query):
-    with youtube_dl.YoutubeDL({'format': 'bestaudio', 'noplaylist': 'True'}) as ydl:
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'noplaylist': True,
+        'default_search': 'ytsearch',
+        'quiet': True
+    }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         try:
-            result = ydl.extract_info(f"ytsearch:{query}", download=False)['entries'][0]
+            result = ydl.extract_info(query, download=False)
+            if 'entries' in result:
+                result = result['entries'][0]
+            
             return {'source': result['url'], 'title': result['title']}
+        
         except Exception as e:
             print(f"Erro ao buscar no YouTube: {str(e)}")
             return None
@@ -57,22 +68,24 @@ def get_spotify_track(url):
 async def play_next_song(ctx):
     guild_id = ctx.guild.id
     if guild_id in music_queue and music_queue[guild_id]:
-      
         song = music_queue[guild_id].pop(0)
-        
+
+        if 'source' not in song:
+            await ctx.send("Erro: Não foi possível obter o link de áudio.")
+            return
+
         voice_channel = ctx.author.voice.channel
         voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
-      
         source = discord.FFmpegPCMAudio(song['source'])
         voice.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
         
-        await ctx.send(messages.MESSAGE_NOW_PLAYING.format(title=song['title']))
+        await ctx.send(f"Tocando agora: **{song['title']}**")
     else:
-      
         voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             await voice.disconnect()
+
 
 @bot.command(name="play")
 async def play(ctx, *, query=None):
