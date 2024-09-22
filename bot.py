@@ -23,18 +23,6 @@ bot = commands.Bot(command_prefix="-", intents=intents)
 
 music_queue = {}
 
-def search_spotify(query):
-    try:
-        result = spotify.search(q=query, type='track', limit=1)
-        if result and result['tracks']['items']:
-            track = result['tracks']['items'][0]
-            return {'source': track['external_urls']['spotify'], 'title': track['name']}
-        else:
-            return None
-    except Exception as e:
-        print(f"Erro ao buscar no Spotify: {str(e)}")
-        return None
-
 def search_youtube(query):
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -52,6 +40,24 @@ def search_youtube(query):
         except Exception as e:
             print(f"Erro ao buscar no YouTube: {str(e)}")
             return None
+
+def search_spotify(query):
+    try:
+        spotify_pattern = r"(https?://open\.spotify\.com/track/[\w\d]+)"
+        if re.match(spotify_pattern, query):
+            track_id = query.split('/')[-1].split('?')[0]
+            track = spotify.track(track_id)
+            return {'title': track['name'] + ' ' + track['artists'][0]['name']}
+        
+        result = spotify.search(q=query, type='track', limit=1)
+        if result and result['tracks']['items']:
+            track = result['tracks']['items'][0]
+            return {'title': track['name'] + ' ' + track['artists'][0]['name']}
+        else:
+            return None
+    except Exception as e:
+        print(f"Erro ao buscar no Spotify: {str(e)}")
+        return None
 
 async def play_next_song(ctx):
     guild_id = ctx.guild.id
@@ -82,11 +88,10 @@ async def play(ctx, *, query=None):
 
     song = None
 
-    song = search_spotify(query)
+    spotify_song = search_spotify(query)
+    if spotify_song:
+        song = search_youtube(spotify_song['title'])
     
-    if not song:
-        song = search_youtube(query)
-
     if song:
         guild_id = ctx.guild.id
 
